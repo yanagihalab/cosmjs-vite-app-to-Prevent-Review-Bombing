@@ -71,7 +71,7 @@ export default function NeutronTestnetContractPage() {
         mint: {
           token_id: `token-${Date.now()}`,
           owner: walletAddress,
-          token_uri: "https://my-nft-metadata.com/token-placeholder",
+          token_uri: "https://raw.githubusercontent.com/yanagihalab/cosmjs-vite-app-to-Prevent-Review-Bombing/main/NFT_Image.png",
           extension: null
         }
       };
