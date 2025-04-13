@@ -4,7 +4,7 @@ import { StargateClient, GasPrice } from "@cosmjs/stargate";
 import { Link } from "react-router-dom";
 
 
-const CONTRACT_ADDRESS = localStorage.getItem("customContractAddress") || "neutron1n6phzpmd7fkuns6lkfzpyxahnmn4enlt47aqzr6nhy6lv4q4wles2w6dsm";// ← 実際のコントラクトアドレスに変更
+const CONTRACT_ADDRESS = localStorage.getItem("customContractAddress") || "neutron108p4h45tclam3j0uh44qc7g67mpncscxqgvdmqqz5lalakmkctssaul0k8";// ← 実際のコントラクトアドレスに変更
 const CHAIN_ID = "pion-1";
 const RPC_ENDPOINT = "https://rpc-palvus.pion-1.ntrn.tech";
 const DENOM = "untrn";
@@ -17,6 +17,7 @@ const DENOM = "untrn";
 // const CHAIN_ID = "neutron-1";
 // const RPC_ENDPOINT = "https://neutron-rpc.publicnode.com/";
 // const DENOM = "untrn";
+// "neutron1n6phzpmd7fkuns6lkfzpyxahnmn4enlt47aqzr6nhy6lv4q4wles2w6dsm"
 const FALLBACK_FEE_AMOUNT = "10000";
 
 export default function NeutronTestnetContractPage() {
@@ -75,11 +76,11 @@ export default function NeutronTestnetContractPage() {
         mint: {
           token_id: `token-${Date.now()}`,
           owner: walletAddress,
-          token_uri: "https://raw.githubusercontent.com/yanagihalab/cosmjs-vite-app-to-Prevent-Review-Bombing/main/NFT_Image.png",
-          extension: null
+          token_uri: "https://raw.githubusercontent.com/yanagihalab/cosmjs-vite-app-to-Prevent-Review-Bombing/main/NFT_Image.png"
+          // ✅ extension は送らないか、空の {} にする
         }
       };
-
+      
       const funds = [{ denom: DENOM, amount: FALLBACK_FEE_AMOUNT }];
 
       const tx = await client.execute(

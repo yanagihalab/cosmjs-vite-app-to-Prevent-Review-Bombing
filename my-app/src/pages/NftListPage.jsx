@@ -4,7 +4,7 @@ import Layout from "../components/Layout"; // 中央配置＋ダークモード�
 
 const CONTRACT_ADDRESS =
   localStorage.getItem("customContractAddress") ||
-  "neutron1n6phzpmd7fkuns6lkfzpyxahnmn4enlt47aqzr6nhy6lv4q4wles2w6dsm";
+  "neutron108p4h45tclam3j0uh44qc7g67mpncscxqgvdmqqz5lalakmkctssaul0k8";
 const CHAIN_ID = "pion-1";
 const RPC_ENDPOINT = "https://rpc-palvus.pion-1.ntrn.tech";
 

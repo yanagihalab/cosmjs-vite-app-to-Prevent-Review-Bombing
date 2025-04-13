@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { SigningCosmWasmClient } from "@cosmjs/cosmwasm-stargate";
 
-const REVIEW_CONTRACT_ADDRESS = "neutron1y5jmnemzl05h80regw5ajd7muuzf9a0z270uk76eglmjlcw9ms5qep89hq";
-const NFT_CONTRACT_ADDRESS = "neutron1y5jmnemzl05h80regw5ajd7muuzf9a0z270uk76eglmjlcw9ms5qep89hq";
+const REVIEW_CONTRACT_ADDRESS = "neutron108p4h45tclam3j0uh44qc7g67mpncscxqgvdmqqz5lalakmkctssaul0k8";
+const NFT_CONTRACT_ADDRESS = "neutron108p4h45tclam3j0uh44qc7g67mpncscxqgvdmqqz5lalakmkctssaul0k8";
 const CHAIN_ID = "pion-1";
 const RPC_ENDPOINT = "https://rpc-palvus.pion-1.ntrn.tech";
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
