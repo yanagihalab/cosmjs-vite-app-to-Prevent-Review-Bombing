@@ -5,36 +5,40 @@ import { StargateClient, GasPrice } from "@cosmjs/stargate";
 
 const CHAIN_ID = "pion-1";
 const RPC_ENDPOINT = "https://rpc-palvus.pion-1.ntrn.tech";
+const CONTRACT_ADDRESS =
+  localStorage.getItem("customContractAddress") ||
+  "neutron108p4h45tclam3j0uh44qc7g67mpncscxqgvdmqqz5lalakmkctssaul0k8";
 
-function VisitHistory({ walletAddress }) {
+function VisitHistory({ walletAddress, refreshTrigger }) {
   const [history, setHistory] = useState([]);
 
-  useEffect(() => {
+  const fetchHistory = async () => {
     if (!walletAddress) return;
-    (async () => {
-      try {
-        const client = await SigningCosmWasmClient.connect(RPC_ENDPOINT);
-        const tokens = await client.queryContractSmart("neutron1...", {
-          tokens: { owner: walletAddress },
-        });
+    try {
+      const client = await SigningCosmWasmClient.connect(RPC_ENDPOINT);
+      const tokens = await client.queryContractSmart(CONTRACT_ADDRESS, {
+        tokens: { owner: walletAddress },
+      });
 
-        const result = await Promise.all(
-          tokens.tokens.map(async (token_id) => {
-            const info = await client.queryContractSmart("neutron1...", {
-              nft_info: { token_id },
-            });
-            const meta = JSON.parse(info.token_uri);
-            return { token_id, ...meta };
-          })
-        );
+      const result = await Promise.all(
+        tokens.tokens.map(async (token_id) => {
+          const info = await client.queryContractSmart(CONTRACT_ADDRESS, {
+            nft_info: { token_id },
+          });
+          return { token_id, ...info.extension };
+        })
+      );
 
-        setHistory(result);
-      } catch (err) {
-        console.error("履歴取得エラー:", err);
-        setHistory([]);
-      }
-    })();
-  }, [walletAddress]);
+      setHistory(result);
+    } catch (err) {
+      console.error("履歴取得エラー:", err);
+      setHistory([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchHistory();
+  }, [walletAddress, refreshTrigger]);
 
   const today = new Date().toISOString().split("T")[0];
   const hasMintedToday = history.some((item) => item.timestamp?.startsWith(today));
@@ -63,6 +67,7 @@ function VisitHistory({ walletAddress }) {
 export default function VisitCertificationPage() {
   const [walletAddress, setWalletAddress] = useState("");
   const [walletInfo, setWalletInfo] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const location = useLocation();
 
   const connectWallet = async () => {
@@ -93,9 +98,43 @@ export default function VisitCertificationPage() {
 
   const untrnBalance = walletInfo?.find((b) => b.denom === "untrn");
 
+  const handleMint = async () => {
+    try {
+      const signer = window.getOfflineSigner(CHAIN_ID);
+      const gasPrice = GasPrice.fromString("0.025untrn");
+      const client = await SigningCosmWasmClient.connectWithSigner(RPC_ENDPOINT, signer, { gasPrice });
+
+      const now = new Date().toISOString();
+      const msg = {
+        mint: {
+          token_id: `visit-nft-${Date.now()}`,
+          owner: walletAddress,
+          token_uri: "https://raw.githubusercontent.com/yanagihalab/cosmjs-vite-app-to-Prevent-Review-Bombing/main/NFT_Image.png",
+          extension: {
+            latitude: lat,
+            longitude: lon,
+            timestamp: now,
+            note: "このNFTは来店証明として発行されました。",
+            reviewed: false,
+          },
+        },
+      };
+
+      const funds = [{ denom: "untrn", amount: "10000" }];
+
+      const tx = await client.execute(walletAddress, CONTRACT_ADDRESS, msg, "auto", "Mint Visit NFT", funds);
+      alert("来店証明NFTを発行しました！\nTxHash: " + tx.transactionHash);
+      
+      setRefreshTrigger(prev => prev + 1); // 履歴の更新をトリガー
+    } catch (err) {
+      console.error("NFT発行エラー:", err);
+      alert("NFTの発行に失敗しました。");
+    }
+  };
+
   return (
     <div className="p-8 space-y-6">
-      <VisitHistory walletAddress={walletAddress} />
+      <VisitHistory walletAddress={walletAddress} refreshTrigger={refreshTrigger} />
       <h1 className="text-2xl font-bold">🏪 来店証明発行ページ</h1>
 
       <p className="text-sm text-gray-600">
@@ -130,32 +169,7 @@ export default function VisitCertificationPage() {
 
           <div className="space-y-4 pt-4">
             <button
-              onClick={async () => {
-                try {
-                  const signer = window.getOfflineSigner(CHAIN_ID);
-                  const gasPrice = GasPrice.fromString("0.025untrn");
-                  const client = await SigningCosmWasmClient.connectWithSigner(RPC_ENDPOINT, signer, { gasPrice });
-                  const now = new Date().toISOString();
-                  const msg = {
-                    mint: {
-                      token_id: `visit-nft-${Date.now()}`,
-                      owner: walletAddress,
-                      token_uri: JSON.stringify({
-                        latitude: lat,
-                        longitude: lon,
-                        timestamp: now,
-                        note: "このNFTは来店証明として発行されました。",
-                        reviewed: false,
-                      }),
-                    },
-                  };
-                  const tx = await client.execute(walletAddress, "neutron1...", msg, "auto");
-                  alert("来店証明NFTを発行しました！\nTxHash: " + tx.transactionHash);
-                } catch (err) {
-                  console.error("NFT発行エラー:", err);
-                  alert("NFTの発行に失敗しました。");
-                }
-              }}
+              onClick={handleMint}
               className="px-4 py-2 bg-green-600 text-white rounded"
             >
               来店証明NFTを発行する / Mint Visit NFT
