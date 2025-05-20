@@ -11,8 +11,9 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    allowedHosts: [
-      'cosmjs-vite-app-to-prevent-review-bombing.onrender.com'
-    ]
+    host: '0.0.0.0',              // Render上で必須
+    port: process.env.PORT || 5173, // Renderが指定したPORTを使う
+    strictPort: true,
+    allowedHosts: 'all' // すべてのホストを許可
   }
 });
