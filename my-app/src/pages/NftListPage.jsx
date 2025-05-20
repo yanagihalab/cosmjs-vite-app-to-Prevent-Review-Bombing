@@ -25,35 +25,35 @@ export default function NftListPage() {
       if (!walletAddress) return;
       setLoading(true);
       try {
-        const client = await SigningCosmWasmClient.connect(RPC_ENDPOINT);
+        if (!window.keplr) return alert("Keplrをインストールしてください");
+        await window.keplr.enable(CHAIN_ID);
+        const offlineSigner = window.getOfflineSigner(CHAIN_ID);
+        // ✅ Signerを指定したクライアントを使う
+        const client = await SigningCosmWasmClient.connectWithSigner(RPC_ENDPOINT, offlineSigner);
         const tokens = await client.queryContractSmart(CONTRACT_ADDRESS, {
           tokens: { owner: walletAddress },
         });
-  
-        const results = await Promise.all(
-          tokens.tokens.map(async (token_id) => {
-            const { token_uri, extension } = await client.queryContractSmart(CONTRACT_ADDRESS, {
-              nft_info: { token_id },
-            });
-            return { token_id, token_uri, extension };
-          })
-        );
-  
-        // ✅ timestamp 降順（新しい順）に並び替え
-        const sorted = results.sort((a, b) => {
-          const aTime = new Date(a.extension?.timestamp || 0).getTime();
-          const bTime = new Date(b.extension?.timestamp || 0).getTime();
-          return bTime - aTime;
-        });
-  
-        setNftList(sorted.slice(0, 3)); // ✅ 最新3件のみ表示
-      } catch (err) {
-        console.error("NFT一覧取得エラー:", err);
-        alert("NFT一覧の取得に失敗しました");
-      } finally {
-        setLoading(false);
-      }
-    };
+      const results = await Promise.all(
+        tokens.tokens.map(async (token_id) => {
+          const { token_uri, extension } = await client.queryContractSmart(CONTRACT_ADDRESS, {
+            nft_info: { token_id },
+          });
+          return { token_id, token_uri, extension };
+        })
+      );
+      const sorted = results.sort((a, b) => {
+        const aTime = new Date(a.extension?.timestamp || 0).getTime();
+        const bTime = new Date(b.extension?.timestamp || 0).getTime();
+        return bTime - aTime;
+      });
+      setNftList(sorted.slice(0, 3));
+    } catch (err) {
+      console.error("NFT一覧取得エラー:", err);
+      alert("NFT一覧の取得に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
   
     useEffect(() => {
       if (walletAddress) fetchNfts();
